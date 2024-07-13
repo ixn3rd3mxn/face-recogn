@@ -39,9 +39,17 @@ print(len(imgModeList))
 
 print("Loading Encode File ...")
 file = open('EncodeFile.p', 'rb')
-encodeListKnownWithIds = pickle.load(file)
+encodeDict = pickle.load(file)
 file.close()
-encodeListKnown, studentIds = encodeListKnownWithIds
+
+# Flatten the dictionary to list of encodings and corresponding IDs
+encodeListKnown = []
+studentIds = []
+for student_id, encodings in encodeDict.items():
+    for encoding in encodings:
+        encodeListKnown.append(encoding)
+        studentIds.append(student_id)
+
 print(studentIds)
 print("Encode File Loaded")
 
@@ -140,6 +148,5 @@ while True:
     else:
         modeType = 0
         counter = 0
-    # cv2.imshow("Webcam", img)
     cv2.imshow("Face Attendance", imgBackground)
     cv2.waitKey(1)

@@ -15,20 +15,20 @@ data = {
     "001":
         {
             "name": "Som Slash",
-            "total_attendance": 1,
-            "last_attendance_time": "2024-12-12 23:59:59"
+            "total_attendance": 7,
+            "last_attendance_time": "2022-12-11 00:54:34"
         },
     "002":
         {
             "name": "Lee Tohde",
-            "total_attendance": 1,
-            "last_attendance_time": "2024-12-12 23:59:59"
+            "total_attendance": 7,
+            "last_attendance_time": "2022-12-11 00:54:34"
         },
     "003":
         {
             "name": "Wa Todenk",
-            "total_attendance": 1,
-            "last_attendance_time": "2024-12-12 23:59:59"
+            "total_attendance": 7,
+            "last_attendance_time": "2022-12-11 00:54:34"
         },
 }
 
