@@ -6,29 +6,29 @@ from firebase_admin import db
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
-    'databaseURL':"https://faceattendancerealtime-58333-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    'databaseURL':"https://faceplus-1b3e4-default-rtdb.asia-southeast1.firebasedatabase.app/"
 })
 
 ref = db.reference('Students')
 
 data = {
-    "people001":
+    "001":
         {
             "name": "Som Slash",
-            "total_attendance": 0,
-            "last_attendance_time": "1000-01-01 10:10:10"
+            "total_attendance": 1,
+            "last_attendance_time": "2024-12-12 23:59:59"
         },
-    "people002":
+    "002":
         {
             "name": "Lee Tohde",
-            "total_attendance": 0,
-            "last_attendance_time": "1000-01-01 10:10:10"
+            "total_attendance": 1,
+            "last_attendance_time": "2024-12-12 23:59:59"
         },
-    "people003":
+    "003":
         {
             "name": "Wa Todenk",
-            "total_attendance": 0,
-            "last_attendance_time": "1000-01-01 10:10:10"
+            "total_attendance": 1,
+            "last_attendance_time": "2024-12-12 23:59:59"
         },
 }
 

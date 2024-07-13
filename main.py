@@ -18,8 +18,8 @@ from datetime import datetime
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
-    'databaseURL':"https://faceattendancerealtime-58333-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    'storageBucket': "faceattendancerealtime-58333.appspot.com"
+    'databaseURL':"https://faceplus-1b3e4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    'storageBucket': "faceplus-1b3e4.appspot.com"
 })
 
 bucket = storage.bucket()
@@ -66,15 +66,15 @@ while True:
         for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
             matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
-            # print("matches", matches)
-            # print("faceDis", faceDis)
+            print("matches", matches)
+            print("faceDis", faceDis)
 
             matchIndex = np.argmin(faceDis)
-            # print("Match Index", matchIndex)
+            print("Match Index", matchIndex)
 
             if matches[matchIndex]:
-                # print("Known Face Detected")
-                # print(studentIds[matchIndex])
+                print("Known Face Detected")
+                print(studentIds[matchIndex])
                 y1, x2, y2, x1 = faceLoc
                 y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
                 bbox = 55 + x1, 162 + y1, x2 - x1, y2 - y1

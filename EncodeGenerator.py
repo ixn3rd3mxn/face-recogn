@@ -11,8 +11,8 @@ from firebase_admin import storage
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
-    'databaseURL':"https://faceattendancerealtime-58333-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    'storageBucket': "faceattendancerealtime-58333.appspot.com"
+    'databaseURL':"https://faceplus-1b3e4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    'storageBucket': "faceplus-1b3e4.appspot.com"
 })
 
 # Importing student images
