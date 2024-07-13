@@ -17,23 +17,21 @@ firebase_admin.initialize_app(cred, {
 
 # Importing student images
 folderPath = 'Images'
-personFolders = os.listdir(folderPath)
-print(personFolders)
+pathList = os.listdir(folderPath)
+print(pathList)
 imgList = []
 studentIds = []
-for person in personFolders:
-    personPath = os.path.join(folderPath, person)
-    if os.path.isdir(personPath):
-        for imgName in os.listdir(personPath):
-            imgPath = os.path.join(personPath, imgName)
-            imgList.append(cv2.imread(imgPath))
-            studentIds.append(person)
+for path in pathList:
+    imgList.append(cv2.imread(os.path.join(folderPath, path)))
+    studentIds.append(os.path.splitext(path)[0])
 
-            bucket = storage.bucket()
-            blob = bucket.blob(imgPath)
-            blob.upload_from_filename(imgPath)
+    fileName = f'{folderPath}/{path}'
+    bucket = storage.bucket()
+    blob = bucket.blob(fileName)
+    blob.upload_from_filename(fileName)
 
-            print(imgName)
+    print(path)
+    print(os.path.splitext(path)[0])
 print(studentIds)
 
 def findEncodings(imagesList):
