@@ -100,7 +100,7 @@ while True:
             if counter == 1:
                 studentInfo = db.reference(f'Students/{id}').get()
                 print(studentInfo)
-                blob = bucket.get_blob(f'Images/{id}.png')
+                blob = bucket.get_blob(f'Images/{id}/{id}_1.png')
                 array = np.frombuffer(blob.download_as_string(), np.uint8)
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 datetimeObject = datetime.strptime(studentInfo['last_attendance_time'],
