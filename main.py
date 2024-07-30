@@ -1,5 +1,3 @@
-#this is main.py
-
 import os
 import pickle
 import numpy as np
@@ -10,15 +8,44 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
-import numpy as np
-from datetime import datetime
-#import requests
+import datetime
+import ezsheets
 
-#token = e8wMjCsVUS1ifwlVaQuM8x3hNzTMP6LkSaBlvPQNLDg
+# Function to generate a sheet name based on the current date and time
+def generate_sheet_name():
+    now = datetime.datetime.now()
+    date_str = now.strftime('%d_%m_%Y')
+    
+    if now.time() >= datetime.time(0, 0, 0) and now.time() <= datetime.time(11, 59, 59):
+        time_str = 'Enter_work'
+    elif now.time() >= datetime.time(12, 0, 0) and now.time() <= datetime.time(23, 59, 59):
+        time_str = 'Leave_work'
+    else:
+        time_str = 'Other_work'
+
+    return f"{date_str}_{time_str}"
+
+def find_next_empty_column(sheet):
+    for column_num in range(1, sheet.rowCount):
+        if sheet.getRow(column_num)[0] == '':
+            return column_num
+    return sheet.rowCount + 1
+
+# Open the spreadsheet
+s = ezsheets.Spreadsheet('1MNhHL8TpBuiTR5VS1YPEzdyvadxEB5F_iKs4TVUkBZo')
+
+# Generate a new sheet title based on the current date and time
+new_sheet_title = generate_sheet_name()
+new_sheet = s.createSheet(title=new_sheet_title)
+
+# Get the newly created sheet
+sh = s.sheets[-1]
+
+from datetime import datetime
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
-    'databaseURL':"https://faceplus-1b3e4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    'databaseURL': "https://faceplus-1b3e4-default-rtdb.asia-southeast1.firebasedatabase.app/",
     'storageBucket': "faceplus-1b3e4.appspot.com"
 })
 
@@ -72,7 +99,7 @@ while True:
 
     if faceCurFrame:
         for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
-            matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
+            matches = face_recognition.compare_faces(encodeListKnown, encodeFace, tolerance=0.4)
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
             print("matches", matches)
             print("faceDis", faceDis)
@@ -80,7 +107,7 @@ while True:
             matchIndex = np.argmin(faceDis)
             print("Match Index", matchIndex)
 
-            if matches[matchIndex]:
+            if matches[matchIndex] and faceDis[matchIndex] < 0.4:  # Adjusted threshold for better accuracy
                 print("Known Face Detected")
                 print(studentIds[matchIndex])
                 y1, x2, y2, x1 = faceLoc
@@ -94,6 +121,11 @@ while True:
                     cv2.waitKey(1)
                     counter = 1
                     modeType = 1
+            else:
+                print("Unknown Face Detected")
+                modeType = 3
+                counter = 0
+                imgBackground[44:44 + 633, 808:808 + 414] = imgModeList[modeType]
 
         if counter != 0:
 
@@ -107,11 +139,16 @@ while True:
                                                    "%Y-%m-%d %H:%M:%S")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
                 print(secondsElapsed)
-                if secondsElapsed > 30:
+                if secondsElapsed > 5:
                     ref = db.reference(f'Students/{id}')
                     studentInfo['total_attendance'] += 1
                     ref.child('total_attendance').set(studentInfo['total_attendance'])
                     ref.child('last_attendance_time').set(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+                    next_column = find_next_empty_column(sh)
+                    sh.update(1, next_column, str(studentInfo['name']))
+                    sh.update(2, next_column, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
                 else:
                     modeType = 3
                     counter = 0
@@ -135,7 +172,7 @@ while True:
                     cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
 
-                    imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
+                    # imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
 
                 counter += 1
 
