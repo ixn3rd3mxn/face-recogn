@@ -1,5 +1,3 @@
-#this is EncodeGenerator.py
-
 import cv2
 import face_recognition
 import pickle
@@ -40,8 +38,15 @@ for path in pathList:
         encodeList = []
         for img in imagesList:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            encode = face_recognition.face_encodings(img)[0]
-            encodeList.append(encode)
+            encodings = face_recognition.face_encodings(img)
+            if encodings:  # Check if any encodings are found
+                encode = encodings[0]
+                encodeList.append(encode)
+            #else:
+                #print(f"No face found in image for {path}")
+                #cv2.imshow(f"No face found in {path}", img)
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
 
         return encodeList
 
