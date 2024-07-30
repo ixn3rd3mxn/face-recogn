@@ -20,19 +20,13 @@ data = {
         },
     "002":
         {
-            "name": "Hanafee Useng",
+            "name": "erfan salaeh",
             "total_attendance": 0,
             "last_attendance_time": "0001-01-01 01:01:01"
         },
     "003":
         {
-            "name": "Sulkiflee Tohde",
-            "total_attendance": 0,
-            "last_attendance_time": "0001-01-01 01:01:01"
-        },
-    "004":
-        {
-            "name": "Dr attapon",
+            "name": "anwar tohdeng",
             "total_attendance": 0,
             "last_attendance_time": "0001-01-01 01:01:01"
         },
