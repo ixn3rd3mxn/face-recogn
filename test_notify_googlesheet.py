@@ -1,7 +1,9 @@
+"""
+#gen sheet : YyYyMmDd in realtime
+
 import ezsheets
 import datetime
 
-# Function to generate a sheet name based on the current date and time
 def generate_sheet_name():
     now = datetime.datetime.now()
     date_str = now.strftime('%d_%m_%Y')
@@ -15,14 +17,46 @@ def generate_sheet_name():
 
     return f"{date_str}_{time_str}"
 
-# Open the spreadsheet
-s = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1MNhHL8TpBuiTR5VS1YPEzdyvadxEB5F_iKs4TVUkBZo/edit?gid=1143167581#gid=1143167581')
+s = ezsheets.Spreadsheet('1MNhHL8TpBuiTR5VS1YPEzdyvadxEB5F_iKs4TVUkBZo')
 
-# Generate a new sheet title based on the current date and time
 new_sheet_title = generate_sheet_name()
 new_sheet = s.createSheet(title=new_sheet_title)
 
-# Get the newly created sheet
 sh = s.sheets[-1]
 
 print(f"Created and using new sheet with title: {sh.title}")
+"""
+
+"""------------------------------------------------------------------------------------------------------------------------------------"""
+
+
+"""
+#gen Spreadsheet : YyYyMmDd in realtime
+
+import ezsheets
+from datetime import datetime
+
+now = datetime.now()
+
+date_str = now.strftime("%Y-%m-%d")
+
+import datetime
+
+if now.time() >= datetime.time(0, 0, 0) and now.time() <= datetime.time(11, 59, 59):
+    time_based_name = 'Enter_work'
+elif now.time() >= datetime.time(12, 0, 0) and now.time() <= datetime.time(23, 59, 59):
+    time_based_name = 'Leave_work'
+else:
+    time_based_name = 'Other_work'
+
+spreadsheet_name = f"{date_str}_{time_based_name}"
+
+new_spreadsheet = ezsheets.createSpreadsheet(spreadsheet_name)
+
+print('New spreadsheet created:')
+print('Spreadsheet ID:', new_spreadsheet.spreadsheetId)
+
+s = ezsheets.Spreadsheet(new_spreadsheet.spreadsheetId)
+
+sh = s[0]
+"""
