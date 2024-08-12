@@ -14,6 +14,10 @@ from mediapipe.tasks.python import vision
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QVBoxLayout,
                              QLabel, QLineEdit, QTextEdit, QMessageBox, QInputDialog)
 
+from PyQt6.QtCore import QTimer, QTime
+
+from PyQt6.QtCore import QThread
+
 # Initialize Firebase Admin SDK
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
@@ -70,7 +74,6 @@ def add_student(student_id, name):
     }
 
     ref.child(student_id).set(student_data)
-    detect_and_save_faces(student_id)
 
 
 def delete_student(student_id):
@@ -98,28 +101,42 @@ def delete_student(student_id):
 def visualize(image, detection_result, confidence_threshold: float, frame_counter: int, folder_name: str) -> np.ndarray:
     annotated_image = image.copy()
     height, width, _ = image.shape
+
+    if not detection_result.detections:
+        return annotated_image
+
+    # Find the closest face (largest bounding box area)
+    max_area = 0
+    closest_detection = None
     for detection in detection_result.detections:
-        # Only visualize detections with a confidence score above the threshold
-        if detection.categories[0].score < confidence_threshold:
-            continue
-
         bbox = detection.bounding_box
-        start_point = max(bbox.origin_x - 30, 0), max(bbox.origin_y - 70, 0)
-        end_point = min(bbox.origin_x + bbox.width + 30, width), min(bbox.origin_y + bbox.height + 30, height)
-        cv2.rectangle(annotated_image, start_point, end_point, (255, 0, 0), 3)
+        area = bbox.width * bbox.height
+        if area > max_area and detection.categories[0].score >= confidence_threshold:
+            max_area = area
+            closest_detection = detection
 
-        # Crop face and save it with margin
-        crop_img = image[start_point[1]:end_point[1], start_point[0]:end_point[0]]
-        face_filename = os.path.join('Images', folder_name, f'{folder_name}_{frame_counter}.png')
-        cv2.imwrite(face_filename, crop_img)
+    if closest_detection is None:
+        return annotated_image
 
-        category = detection.categories[0]
-        category_name = category.category_name
-        category_name = '' if category_name is None else category_name
-        probability = round(category.score, 2)
-        result_text = f"{category_name} ({probability})"
-        text_location = (10 + bbox.origin_x, 10 + 10 + bbox.origin_y)
-        cv2.putText(annotated_image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 1)
+    # Process the closest face
+    bbox = closest_detection.bounding_box
+    start_point = max(bbox.origin_x - 30, 0), max(bbox.origin_y - 70, 0)
+    end_point = min(bbox.origin_x + bbox.width + 30, width), min(bbox.origin_y + bbox.height + 30, height)
+    cv2.rectangle(annotated_image, start_point, end_point, (255, 0, 0), 3)
+
+    # Crop face and save it with margin
+    crop_img = image[start_point[1]:end_point[1], start_point[0]:end_point[0]]
+    face_filename = os.path.join('Images', folder_name, f'{folder_name}_{frame_counter}.png')
+    cv2.imwrite(face_filename, crop_img)
+
+    category = closest_detection.categories[0]
+    category_name = category.category_name
+    category_name = '' if category_name is None else category_name
+    probability = round(category.score, 2)
+    result_text = f"{category_name} ({probability})"
+    text_location = (10 + bbox.origin_x, 10 + 10 + bbox.origin_y)
+    cv2.putText(annotated_image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 1)
+
     return annotated_image
 
 
@@ -130,8 +147,8 @@ def detect_and_save_faces(folder_name):
 
     cap = cv2.VideoCapture(0)
 
-    # Wait for the camera to stabilize
-    time.sleep(5)
+    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     count = 0  # Counter for the saved cropped faces
     max_images = 30  # Maximum number of images to save
@@ -212,6 +229,35 @@ def find_encodings(images_list):
     return encode_list
 
 
+def reset_all_data():
+    # Delete all students from the database
+    ref.set({})
+
+    # Delete all image folders from Firebase Storage
+    bucket = storage.bucket()
+    blobs = bucket.list_blobs(prefix='Images/')
+    for blob in blobs:
+        blob.delete()
+
+    # Delete all image folders from local machine
+    local_folder_path = 'Images'
+    if os.path.exists(local_folder_path):
+        for folder_name in os.listdir(local_folder_path):
+            folder_path = os.path.join(local_folder_path, folder_name)
+            if os.path.isdir(folder_path):
+                for filename in os.listdir(folder_path):
+                    file_path = os.path.join(folder_path, filename)
+                    os.remove(file_path)
+                os.rmdir(folder_path)
+
+    # Delete the encoding file
+    if os.path.exists("EncodeFile.p"):
+        os.remove("EncodeFile.p")
+
+class EncodeThread(QThread):
+    def run(self):
+        encode_all_images()
+
 class FaceRecognitionApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -243,30 +289,38 @@ class FaceRecognitionApp(QWidget):
         self.encode_images_btn.clicked.connect(self.encode_images)
         self.layout.addWidget(self.encode_images_btn)
 
+        self.reset_all_btn = QPushButton('Reset All')
+        self.reset_all_btn.clicked.connect(self.reset_all)
+        self.layout.addWidget(self.reset_all_btn)
+
         self.output = QTextEdit()
         self.output.setReadOnly(True)
         self.layout.addWidget(self.output)
 
         self.setLayout(self.layout)
 
+    # Existing methods go here...
+
+
     def show_folders(self):
         bucket_name = "faceplus-1b3e4.appspot.com"
         folders = list_subfolders_in_images(bucket_name)
         folders_text = "Existing folders in 'Images' folder in Firebase Storage:\n"
         folders_text += "\n".join(folders)
-        self.output.setText(folders_text)
+        self.output.append(folders_text)
 
     def show_students(self):
         students_text = display_students()
-        self.output.setText(students_text)
+        self.output.append(students_text)
 
     def add_student(self):
         student_id, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter student ID:')
         if ok and student_id:
             name, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter student name:')
             if ok and name:
+                self.output.append(f"Adding student {name} with ID {student_id}...")
                 add_student(student_id, name)
-                QMessageBox.information(self, 'Info', f'Student {name} with ID {student_id} added.')
+                self.output.append(f"Student {name} with ID {student_id} added.")
                 self.output.append(f"Started detecting and saving faces for {name} (ID: {student_id}).")
                 self.detect_and_save_faces(student_id)
 
@@ -274,17 +328,46 @@ class FaceRecognitionApp(QWidget):
         student_id, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter student ID to delete:')
         if ok and student_id:
             if delete_student(student_id):
-                QMessageBox.information(self, 'Info', f'Student with ID {student_id} has been deleted.')
+                self.output.append(f"Student with ID {student_id} has been deleted.")
             else:
-                QMessageBox.warning(self, 'Warning', f'No student found with ID {student_id}.')
+                self.output.append(f"No student found with ID {student_id}.")
 
     def encode_images(self):
-        encode_all_images()
-        QMessageBox.information(self, 'Info', 'Encoding Complete and File Saved')
+        self.output.append('Starting encoding process...')
+        
+        self.start_time = time.time()
+        self.elapsed_timer = QTimer()
+        self.elapsed_timer.timeout.connect(self.update_elapsed_time)
+        self.elapsed_timer.start(10)  # Update every 10 milliseconds
+        
+        # Perform encoding in a separate thread to avoid freezing the UI
+        self.encode_thread = EncodeThread()
+        self.encode_thread.finished.connect(self.on_encoding_finished)
+        self.encode_thread.start()
+        
+    def update_elapsed_time(self):
+        elapsed_seconds = time.time() - self.start_time
+        elapsed_time_str = time.strftime('%H:%M:%S', time.gmtime(elapsed_seconds))
+        self.output.append(f'Elapsed Time: {elapsed_time_str}')
+        
+    def on_encoding_finished(self):
+        self.elapsed_timer.stop()
+        total_time = time.time() - self.start_time
+        total_time_str = time.strftime('%H:%M:%S', time.gmtime(total_time))
+        self.output.append(f'Encoding Complete in {total_time_str}')
+
 
     def detect_and_save_faces(self, student_id):
         detect_and_save_faces(student_id)
         self.output.append(f"Completed detecting and saving faces for student ID: {student_id}.")
+
+    def reset_all(self):
+        password, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter password:', QLineEdit.EchoMode.Password)
+        if ok and password == '999':
+            reset_all_data()
+            self.output.append('All data has been reset.')
+        elif ok:
+            self.output.append('Incorrect password.')
 
 
 if __name__ == '__main__':

@@ -4,11 +4,8 @@ import pickle
 import numpy as np
 import face_recognition
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
-from firebase_admin import storage
+from firebase_admin import credentials, db, storage
 import time
-
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -98,28 +95,42 @@ def delete_student():
 def visualize(image, detection_result, confidence_threshold: float, frame_counter: int, folder_name: str) -> np.ndarray:
     annotated_image = image.copy()
     height, width, _ = image.shape
+
+    if not detection_result.detections:
+        return annotated_image
+
+    # Find the closest face (largest bounding box area)
+    max_area = 0
+    closest_detection = None
     for detection in detection_result.detections:
-        # Only visualize detections with a confidence score above the threshold
-        if detection.categories[0].score < confidence_threshold:
-            continue
-
         bbox = detection.bounding_box
-        start_point = max(bbox.origin_x - 30, 0), max(bbox.origin_y - 70, 0)
-        end_point = min(bbox.origin_x + bbox.width + 30, width), min(bbox.origin_y + bbox.height + 30, height)
-        cv2.rectangle(annotated_image, start_point, end_point, (255, 0, 0), 3)
-        
-        # Crop face and save it with margin
-        crop_img = image[start_point[1]:end_point[1], start_point[0]:end_point[0]]
-        face_filename = os.path.join('Images', folder_name, f'{folder_name}_{frame_counter}.png')
-        cv2.imwrite(face_filename, crop_img)
+        area = bbox.width * bbox.height
+        if area > max_area and detection.categories[0].score >= confidence_threshold:
+            max_area = area
+            closest_detection = detection
 
-        category = detection.categories[0]
-        category_name = category.category_name
-        category_name = '' if category_name is None else category_name
-        probability = round(category.score, 2)
-        result_text = f"{category_name} ({probability})"
-        text_location = (10 + bbox.origin_x, 10 + 10 + bbox.origin_y)
-        cv2.putText(annotated_image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 1)
+    if closest_detection is None:
+        return annotated_image
+
+    # Process the closest face
+    bbox = closest_detection.bounding_box
+    start_point = max(bbox.origin_x - 30, 0), max(bbox.origin_y - 70, 0)
+    end_point = min(bbox.origin_x + bbox.width + 30, width), min(bbox.origin_y + bbox.height + 30, height)
+    cv2.rectangle(annotated_image, start_point, end_point, (255, 0, 0), 3)
+
+    # Crop face and save it with margin
+    crop_img = image[start_point[1]:end_point[1], start_point[0]:end_point[0]]
+    face_filename = os.path.join('Images', folder_name, f'{folder_name}_{frame_counter}.png')
+    cv2.imwrite(face_filename, crop_img)
+
+    category = closest_detection.categories[0]
+    category_name = category.category_name
+    category_name = '' if category_name is None else category_name
+    probability = round(category.score, 2)
+    result_text = f"{category_name} ({probability})"
+    text_location = (10 + bbox.origin_x, 10 + 10 + bbox.origin_y)
+    cv2.putText(annotated_image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 1)
+
     return annotated_image
 
 def detect_and_save_faces(folder_name):
@@ -128,11 +139,6 @@ def detect_and_save_faces(folder_name):
         os.makedirs(output_dir)
 
     cap = cv2.VideoCapture(0)
-    
-    # Wait for the camera to stabilize
-    print("Waiting for the camera to stabilize...")
-    time.sleep(5)
-    print("Camera is ready. Starting face detection.")
 
     count = 0  # Counter for the saved cropped faces
     max_images = 30  # Maximum number of images to save
