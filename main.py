@@ -11,6 +11,7 @@ from firebase_admin import storage
 import datetime
 import ezsheets
 import time
+from gtts import gTTS
 
 # Function to generate a sheet name based on the current date and time
 def generate_sheet_name():
@@ -37,6 +38,40 @@ def is_name_in_sheet(sheet, name):
         if row[0] == name:
             return True
     return False
+
+import pygame
+
+def play_greeting(name):
+    text = f"Hello! , Good morning {name}."
+    language = 'en'
+    speech = gTTS(text=text, lang=language, slow=False)
+    file_path = "greeting.mp3"
+    
+    # Save the speech to an mp3 file
+    speech.save(file_path)
+    
+    try:
+        # Initialize the mixer and play the audio file
+        pygame.mixer.init()
+        pygame.mixer.music.load(file_path)
+        pygame.mixer.music.play()
+
+        # Wait until the music is finished playing
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)  # Check every 100ms
+    except Exception as e:
+        print("An error occurred while trying to play the sound:", e)
+    finally:
+        # Stop the music and uninitialize the mixer to release the file
+        pygame.mixer.music.stop()
+        pygame.mixer.quit()
+
+        # Ensure the file is deleted
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(f"Failed to delete the file: {e}")
 
 # Generate a new sheet title based on the current date and time
 new_sheet_title = generate_sheet_name()
@@ -80,21 +115,7 @@ for path in modePathList:
     imgModeList.append(cv2.imread(os.path.join(folderModePath, path)))
 print(len(imgModeList))
 
-# Start of the countdown before loading the encode file
-start_time = time.time()
-
-while True:
-    elapsed_time = int(time.time() - start_time)
-    countdown_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-    print(f"Countdown: {countdown_str}", end="\r")  # Print the countdown in-place
-
-    # Stop the countdown after 1 second or press any key to stop it manually.
-    time.sleep(1) 
-    if elapsed_time >= 1:
-        break
-
-print("\nLoading Encode File ...")
-
+print("Loading Encode File ...")
 file = open('EncodeFile.p', 'rb')
 encodeDict = pickle.load(file)
 file.close()
@@ -107,11 +128,6 @@ for student_id, encodings in encodeDict.items():
         encodeListKnown.append(encoding)
         studentIds.append(student_id)
 
-# Stop the countdown and print the elapsed time
-end_time = time.time()
-elapsed_time = int(end_time - start_time)
-countdown_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-print(f"Elapsed time: {countdown_str}")
 print(studentIds)
 print("Encode File Loaded")
 
@@ -206,6 +222,10 @@ while True:
                     next_column = find_next_empty_column(sh)
                     sh.update(1, next_column, str(studentInfo['name']))
                     sh.update(2, next_column, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    
+                    # Play greeting for the recognized user
+                    play_greeting(studentInfo['name'])
+
                 else:
                     modeType = 3
                     counter = 0
