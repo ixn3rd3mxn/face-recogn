@@ -1,16 +1,34 @@
-# face-recogn
-folder first ver is basic face recogn for work timestamp
-u can learn folder first ver to start
-credıt : cvzone
+****************************************************
 
-In addition to the fırst ver folder is face recognize in the upgraded version.
+0 version folder is first version , i Make some minor tweaks from @cvzone
 
-how to get serviceAccountKey.json
-go to firebase and create acc , go to create realtime firebase test mode , go to create storage firebase test mode , go to setting in lobby and click project setting and click Service account , in Admin SDK configuration snippet go to choose python and click  Generate new private key , it give file .json , u can change file name to serviceAccountKey , past file in ur project
+1 version folder is next version , i ve upgraded a lot of things like voice acting / using google sheets / google drive / etc.
 
-how to get credentials-sheets.json
-go to google api , go enable Google Sheets API and Google Drive API , go to Credentials and click dowload , and u can change file name to credentials-sheets , past file in ur project , u can try to run main.py is It will suggest you to click on the link in the terminal, it will take you to the website to allow google sheet and google drive, u can click allow all, when you click on it, it will create the files token-drive.pickle and token-sheets.pickle ( do not delete both files ).
+2 version folder recently (developing a system)
 
-you can get EncodeFile.p in Encode image ( Admin_AIO.py ) after encode face is complete
+****************************************************
 
-Admin_AIO.py is have AddDatatoDatabase + CropSaveEncode + deletedata + reset all
+What is required ?
+
+1 . cmake , go to https://cmake.org/download/ , find Binary distributions and click download Windows x64 Installer , install now and go to tick add path
+
+2 . visual studio , go to https://visualstudio.microsoft.com/ , find Download Visual Studio button purple and click download this , install now / in workloads go to tick desktop development with C++ and in individual components go to tick cmake tools for windows
+
+3 . requirements.txt , pip install -r requirements.txt
+
+4 . any pickle and json file :-
+- credentials.json : get in google cloud , go enable Google Sheets API and Google Drive API , go to get Credentials
+- credentials-sheets.json : same as credentials.json , Just change file name
+- serviceAccountKey.json : get in firebase , go to setting in lobby and click project setting and click Service account , in Admin SDK configuration snippet go to choose python and click Generate new private key , it give file
+- token.json : obtained after running main.py and AdminAIO_GUI.py
+- token-drive.pickle : same as token.json
+- token-sheets.pickle : same as token.json
+
+****************************************************
+
+Details
+
+main.py for user
+AdminAIO_GUI.py for admin
+
+****************************************************
