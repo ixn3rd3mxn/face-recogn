@@ -1,0 +1,1 @@
+https://drive.google.com/file/d/1ClK9WiB492c5OZFKveF3XiHCejoOxINW/view?pli=1download it , it is face_recognizer_fast.onnx , past file it in data/models
