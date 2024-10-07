@@ -8,6 +8,10 @@ BlurWindow
 EZSheets
 requests
 gTTS
+wheel
+dlib
+cmake
+setuptools
 face-recognition
 firebase-admin
 collection
