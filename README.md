@@ -32,3 +32,67 @@ main.py for user
 AdminAIO_GUI.py for admin
 
 ****************************************************
+
+รายละเอียดโครงการและข้อกำหนด
+
+โครงสร้างโฟลเดอร์เวอร์ชัน:
+
+เวอร์ชัน 0
+เป็นเวอร์ชันแรก มีการปรับแต่งเล็กน้อยจาก @cvzone
+ใช้ไลบรารี face-recognition ในการจดจำใบหน้าเท่านั้น
+
+เวอร์ชัน 1
+เป็นเวอร์ชันถัดมา มีการปรับปรุงเพิ่มเติมหลายอย่าง เช่น
+การเพิ่มเสียงพากย์
+ใช้ Google Sheets และ Google Drive
+ใช้ไลบรารี face-recognition และ mediapip ในการจดจำใบหน้าเท่านั้น
+
+เวอร์ชัน 2 (เวอร์ชันปัจจุบัน)
+กำลังพัฒนาระบบ
+เลิกใช้ไลบรารี face-recognition และ mediapip แต่เปลี่ยนมาใช้โมเดล face_recognizer_fast.onnx และ YuNet ในการจดจำใบหน้า
+
+สิ่งที่ต้องใช้ในการตั้งค่า:
+
+CMake
+ดาวน์โหลดได้จาก CMake
+ไปที่หัวข้อ Binary distributions และดาวน์โหลดตัวติดตั้งสำหรับ Windows x64
+ติดตั้งแล้วเลือกตัวเลือก Add to PATH
+
+Visual Studio
+ดาวน์โหลดได้จาก Visual Studio
+คลิกปุ่ม Download Visual Studio สีม่วง
+ระหว่างการติดตั้ง:
+ในส่วน Workloads ให้เลือก Desktop Development with C++
+ในส่วน Individual components ให้เลือก CMake tools for Windows
+
+ติดตั้ง dependencies จากไฟล์ requirements.txt
+
+ใช้คำสั่ง pip install -r requirements.txt
+
+ไฟล์ pickle และ json ที่จำเป็น:
+credentials.json:
+ได้จาก Google Cloud
+เปิดใช้งาน Google Sheets API และ Google Drive API
+ไปที่ส่วน Credentials เพื่อสร้างไฟล์
+
+credentials-sheets.json:
+สร้างเหมือนกับ credentials.json แต่เปลี่ยนชื่อไฟล์
+
+serviceAccountKey.json:
+ได้จาก Firebase
+ไปที่หน้า Settings ในหน้าโครงการ
+คลิก Project settings > Service account > Admin SDK configuration snippet
+เลือก Python แล้วคลิก Generate new private key เพื่อดาวน์โหลดไฟล์
+
+token.json:
+ได้มาหลังจากรัน main.py และ AdminAIO_GUI.py
+
+token-drive.pickle:
+สร้างเหมือนกับ token.json
+
+token-sheets.pickle:
+สร้างเหมือนกับ token.json
+
+รายละเอียดเพิ่มเติม:
+main.py: สำหรับผู้ใช้งานทั่วไป
+AdminAIO_GUI.py: สำหรับแอดมิน
