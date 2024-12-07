@@ -1,10 +1,10 @@
 ****************************************************
 
-0 version folder is first version , i Make some minor tweaks from @cvzone
+0 version folder is first version , i Make some minor tweaks from @cvzone and my Face Recognition is use lib face-recognition only
 
-1 version folder is next version , i ve upgraded a lot of things like voice acting / using google sheets / google drive / etc.
+1 version folder is next version , i ve upgraded a lot of things like voice acting / using google sheets / google drive / etc and my Face Recognition is use lib face-recognition only
 
-2 version folder recently (developing a system)
+2 version folder recently (developing a system) and and my Face Recognition is't use lib but it use face_recognizer_fast.onnx model and YuNet model
 
 ****************************************************
 
